@@ -1,13 +1,14 @@
 // src/popup/context/FriendsContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
-import { fetchFriends } from '../../services/api';
+import { fetchFriendsWithStatus } from '../../services/api';
 
 interface Friend {
   id: string;
   username: string;
   displayName?: string;
-  lastOnlineAt?: string;
+  isOnline?: boolean;
+  lastSeen?: string;
 }
 
 interface FriendsContextType {
@@ -27,7 +28,7 @@ export const FriendsProvider: React.FC<{children: React.ReactNode}> = ({ childre
     if (!user) return;
     setLoading(true);
     try {
-      const res = await fetchFriends(user.token);
+      const res = await fetchFriendsWithStatus(user.token);
       setFriends(res.data || []);
     } catch {
       setFriends([]);

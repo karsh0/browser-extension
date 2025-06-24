@@ -115,3 +115,10 @@ export const ignoreFriendRequest = async (requestId: string, token: string) => {
   });
   return await res.json();
 };
+
+export const fetchFriendsWithStatus = async (token: string) => {
+  const response = await fetch(`${BACKEND_URL}/api/friends/firends-with-status`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return await response.json();
+};

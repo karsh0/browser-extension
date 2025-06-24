@@ -26,6 +26,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
         const userData = await chrome.storage.local.get('user');
         if (userData.user) {
           setUser(JSON.parse(userData.user));
+          chrome.runtime.sendMessage({ type: 'POPUP_OPENED' });
         }
       } catch (error) {
         console.error('Failed to load user session:', error);
@@ -40,11 +41,13 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   const login = (userData: User) => {
     setUser(userData);
     chrome.storage.local.set({ user: JSON.stringify(userData) });
+    chrome.runtime.sendMessage({ type: 'LOGIN_SUCCESS'});
   };
 
   const logout = () => {
     setUser(null);
     chrome.storage.local.remove('user');
+    chrome.runtime.sendMessage({ type: 'LOGOUT' });
   };
 
   return (
