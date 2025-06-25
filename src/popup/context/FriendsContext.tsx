@@ -1,4 +1,3 @@
-// src/popup/context/FriendsContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { fetchFriendsWithStatus } from '../../services/api';
@@ -38,7 +37,6 @@ export const FriendsProvider: React.FC<{children: React.ReactNode}> = ({ childre
 
   useEffect(() => {
     loadFriends();
-    // eslint-disable-next-line
   }, [user]);
 
   return (

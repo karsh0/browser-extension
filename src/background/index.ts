@@ -1,6 +1,9 @@
 import { closeWebSocket, initializeWebSocket } from "../services/websocket";
+import { tabTracing } from "../services/tabTracking";
 
 console.log('Background script loaded');
+
+tabTracing();
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Extension installed');
