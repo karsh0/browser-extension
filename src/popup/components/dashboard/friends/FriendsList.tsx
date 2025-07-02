@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useFriends } from '../../../context/FriendsContext';
+import UserProfile from './UserProfile';
 
 const FriendsList: React.FC = () => {
   const { friends, loading, activeTabs, allTabs } = useFriends();
+  const [selectedFriend, setSelectedFriend] = useState<null | { id: string; username: string }>(null);
 
   if (loading) {
     return (
@@ -20,10 +22,24 @@ const FriendsList: React.FC = () => {
     );
   }
 
+  if (selectedFriend) {
+    return (
+      <UserProfile
+        username={selectedFriend.username}
+        userId={selectedFriend.id}
+        onBack={() => setSelectedFriend(null)}
+      />
+    );
+  }
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-200">
       {friends.map(friend => (
-        <div key={friend.id} className="p-3 flex flex-col">
+        <div
+          key={friend.id}
+          className="p-3 flex flex-col cursor-pointer hover:bg-blue-50 transition"
+          onClick={() => setSelectedFriend({ id: friend.id, username: friend.username })}
+        >
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
               <span className="font-medium">{friend.displayName || friend.username}</span>

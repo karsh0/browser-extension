@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { fetchUserProfile, sendFriendRequest, cancelFriendRequest } from '../../../../services/api';
+import { fetchUserProfile, sendFriendRequest, cancelFriendRequest, acceptFriendRequest, ignoreFriendRequest, getFriendshipStatus } from '../../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 
 interface UserProfileProps {
   username: string;
-  friendStatus?: string;
+  friendStatus?: { status: string; requestId?: string };
   userId?: string;
   onBack: () => void;
-  onStatusChange?: (status: string) => void;
+  onStatusChange?: (statusObj: { status: string; requestId?: string }) => void;
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({
@@ -20,7 +20,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState(friendStatus);
+  const [statusObj, setStatusObj] = useState(friendStatus);
 
   useEffect(() => {
     if (!user) return;
@@ -31,21 +31,37 @@ const UserProfile: React.FC<UserProfileProps> = ({
   }, [username, user]);
 
   useEffect(() => {
-    setStatus(friendStatus);
+    setStatusObj(friendStatus);
   }, [friendStatus]);
 
   const handleAdd = async () => {
     if (!userId || !user) return;
     await sendFriendRequest(userId, user.token);
-    setStatus('pending_sent');
-    onStatusChange && onStatusChange('pending_sent');
+    const statusRes = await getFriendshipStatus(userId, user.token);
+    const newStatus = { status: statusRes.status, requestId: statusRes.requestId };
+    setStatusObj(newStatus);
+    onStatusChange && onStatusChange(newStatus);
   };
 
   const handleCancel = async () => {
-    if (!userId || !user) return;
-    await cancelFriendRequest(userId, user.token);
-    setStatus('none');
-    onStatusChange && onStatusChange('none');
+    if (!statusObj?.requestId || !user) return;
+    await cancelFriendRequest(statusObj.requestId, user.token);
+    setStatusObj({ status: 'none' });
+    onStatusChange && onStatusChange({ status: 'none' });
+  };
+
+  const handleAccept = async () => {
+    if (!statusObj?.requestId || !user) return;
+    await acceptFriendRequest(statusObj.requestId, user.token);
+    setStatusObj({ status: 'friends' });
+    onStatusChange && onStatusChange({ status: 'friends' });
+  };
+
+  const handleIgnore = async () => {
+    if (!statusObj?.requestId || !user) return;
+    await ignoreFriendRequest(statusObj.requestId, user.token);
+    setStatusObj({ status: 'none' });
+    onStatusChange && onStatusChange({ status: 'none' });
   };
 
   if (loading) {
@@ -69,7 +85,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         onClick={onBack}
         className="mb-4 text-blue-600 hover:underline text-sm"
       >
-        &larr; Back to Search
+        &larr; Back
       </button>
       <div className="flex items-center space-x-4 mb-4">
         <div className="bg-blue-100 rounded-full h-16 w-16 flex items-center justify-center text-2xl font-bold text-blue-600">
@@ -106,10 +122,10 @@ const UserProfile: React.FC<UserProfileProps> = ({
       </div>
       {/* Friend status and action */}
       <div className="mt-4 flex items-center space-x-2">
-        {status === 'friends' && (
+        {statusObj?.status === 'friends' && (
           <span className="px-3 py-1 bg-green-100 text-green-700 rounded">Friends</span>
         )}
-        {status === 'pending_sent' && (
+        {statusObj?.status === 'pending_sent' && (
           <>
             <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded">Request Sent</span>
             <button
@@ -120,10 +136,24 @@ const UserProfile: React.FC<UserProfileProps> = ({
             </button>
           </>
         )}
-        {status === 'pending_received' && (
-          <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded">Requested You</span>
+        {statusObj?.status === 'pending_received' && (
+          <>
+            <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded">Requested You</span>
+            <button
+              className="px-3 py-1 bg-green-500 text-white rounded mr-2"
+              onClick={handleAccept}
+            >
+              Accept
+            </button>
+            <button
+              className="px-3 py-1 bg-gray-300 text-gray-700 rounded"
+              onClick={handleIgnore}
+            >
+              Ignore
+            </button>
+          </>
         )}
-        {status === 'none' && (
+        {statusObj?.status === 'none' && (
           <button
             className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
             onClick={handleAdd}
@@ -131,7 +161,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
             Add Friend
           </button>
         )}
-        {status === 'ignored' && (
+        {statusObj?.status === 'ignored' && (
           <span className="px-3 py-1 bg-gray-100 text-gray-500 rounded">Ignored</span>
         )}
       </div>

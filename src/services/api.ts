@@ -78,12 +78,12 @@ export const sendFriendRequest = async (receiverId: string, token: string) => {
   return await res.json();
 };
 
-export const cancelFriendRequest = async (userId: string, token: string) => {
-  // Find the pending request ID first (you may want to optimize this)
-  // For now, assume you have the requestId, or fetch it if needed
-  // Example:
-  // const req = await fetchPendingRequestId(userId, token);
-  // await fetch(`${BACKEND_URL}/api/friends/request/${req.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+export const cancelFriendRequest = async (requestId: string, token: string) => {
+  const res = await fetch(`${BACKEND_URL}/api/friends/request/${requestId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return await res.json();
 };
 
 export const fetchPendingReceivedRequests = async (token: string) => {
@@ -95,6 +95,13 @@ export const fetchPendingReceivedRequests = async (token: string) => {
 
 export const fetchPendingSentRequests = async (token: string) => {
   const res = await fetch(`${BACKEND_URL}/api/friends/requests/sent`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return await res.json();
+};
+
+export const fetchIgnoredRequests = async (token: string) => {
+  const res = await fetch(`${BACKEND_URL}/api/friends/requests/ignored`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   return await res.json();

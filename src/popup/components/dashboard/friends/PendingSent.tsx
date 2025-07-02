@@ -1,7 +1,7 @@
-// src/popup/components/dashboard/PendingSent.tsx
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
-import { fetchPendingSentRequests } from '../../../../services/api';
+import { fetchPendingSentRequests, cancelFriendRequest } from '../../../../services/api';
+import UserProfile from './UserProfile';
 
 interface Request {
   requestId: string;
@@ -13,6 +13,7 @@ const PendingSent: React.FC = () => {
   const { user } = useAuth();
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedUser, setSelectedUser] = useState<Request | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -22,6 +23,30 @@ const PendingSent: React.FC = () => {
       .finally(() => setLoading(false));
   }, [user]);
 
+  const handleCancel = async (requestId: string) => {
+    if (!user) return;
+    await cancelFriendRequest(requestId, user.token);
+    setRequests(reqs => reqs.filter(r => r.requestId !== requestId));
+    setSelectedUser(null);
+  };
+
+  if (selectedUser) {
+    return (
+      <UserProfile
+        username={selectedUser.receiver.username}
+        friendStatus={{ status: 'pending_sent', requestId: selectedUser.requestId }}
+        userId={selectedUser.receiver.id}
+        onBack={() => setSelectedUser(null)}
+        onStatusChange={statusObj => {
+          if (statusObj.status === 'none') {
+            setRequests(reqs => reqs.filter(r => r.requestId !== selectedUser.requestId));
+            setSelectedUser(null);
+          }
+        }}
+      />
+    );
+  }
+
   return (
     <div>
       {loading && <div className="text-center text-gray-400 py-4">Loading...</div>}
@@ -29,14 +54,25 @@ const PendingSent: React.FC = () => {
         <div className="text-center text-gray-400 py-4">No sent requests.</div>
       )}
       {requests.map(req => (
-        <div key={req.requestId} className="flex items-center justify-between border-b py-2">
+        <div
+          key={req.requestId}
+          className="flex items-center justify-between border-b py-2 cursor-pointer hover:bg-blue-50 transition rounded"
+          onClick={() => setSelectedUser(req)}
+        >
           <div>
             <div className="font-medium">{req.receiver.displayName || req.receiver.username}</div>
             <div className="text-xs text-gray-500">@{req.receiver.username}</div>
           </div>
           <div>
-            {/* Cancel button can be added here */}
-            <button className="px-2 py-1 bg-red-500 text-white rounded">Cancel</button>
+            <button
+              className="px-2 py-1 bg-red-500 text-white rounded"
+              onClick={e => {
+                e.stopPropagation();
+                handleCancel(req.requestId);
+              }}
+            >
+              Cancel
+            </button>
           </div>
         </div>
       ))}

@@ -1,11 +1,12 @@
-// src/popup/components/dashboard/PendingRequests.tsx
 import React, { useState } from 'react';
 import PendingReceived from './PendingReceived';
 import PendingSent from './PendingSent';
+import IgnoredRequests from './IgnoredRequests';
 
 const SUBTABS = [
   { key: 'received', label: 'Received' },
   { key: 'sent', label: 'Sent' },
+  { key: 'ignored', label: 'Ignored' },
 ];
 
 const PendingRequests: React.FC = () => {
@@ -31,6 +32,7 @@ const PendingRequests: React.FC = () => {
       <div className="flex-1 overflow-y-auto">
         {activeSubTab === 'received' && <PendingReceived />}
         {activeSubTab === 'sent' && <PendingSent />}
+        {activeSubTab === 'ignored' && <IgnoredRequests />}
       </div>
     </div>
   );
