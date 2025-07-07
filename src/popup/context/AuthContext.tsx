@@ -5,6 +5,9 @@ interface User {
   username: string;
   displayName?: string;
   token: string;
+  onlinePrivacy?: string;
+  lastOnlinePrivacy?: string;
+  tabPrivacy?: string;
 }
 
 interface AuthContextType {

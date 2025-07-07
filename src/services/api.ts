@@ -143,3 +143,15 @@ export const fetchWeeklyTabUsage = async (token: string) => {
   });
   return await res.json();
 };
+
+export const updatePrivacySettings = async (data: any, token: string) => {
+  const res = await fetch(`${BACKEND_URL}/api/profile/privacy`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  return await res.json();
+};
