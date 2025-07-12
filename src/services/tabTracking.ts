@@ -35,23 +35,15 @@ function getMainDomain(url: string): string {
             url.startsWith('about:') ||
             url.startsWith('file://')
         ) {
-            // Extract protocol and first path segment
             const match = url.match(/^([a-z\-]+:\/\/)([^\/?#]+)?/i);
             if (match) {
-                // e.g. chrome://extensions/?id=... => chrome://extensions
                 const protocol = match[1];
-                // For chrome://, edge://, etc., the "host" is the first path segment
                 const pathMatch = url.replace(protocol, '').split(/[\/?#]/)[0];
                 return protocol + pathMatch;
             }
             return url;
         }
         const { protocol, hostname } = new URL(url);
-        const parts = hostname.split('.');
-        // Handles domains like sub.domain.com, returns domain.com
-        if (parts.length >= 2) {
-            return `${protocol}//${parts.slice(-2).join('.')}`;
-        }
         return `${protocol}//${hostname}`;
     } catch {
         return url;
@@ -68,7 +60,7 @@ export async function publishAllTabs() {
     const tabs = await chrome.tabs.query({});
     const tabData = tabs.map(tab => ({
         id: tab.id,
-        title: tab.title,
+        // title: tab.title,
         url: tab.url ? getMainDomain(tab.url) : ''
     }));
 
@@ -96,7 +88,7 @@ export async function publishActiveTab() {
         tab: {
             id: activeTab[0].id,
             userId,
-            title: activeTab[0].title,
+            // title: activeTab[0].title,
             url: activeTab[0].url ? getMainDomain(activeTab[0].url) : '',
         }
     }))
