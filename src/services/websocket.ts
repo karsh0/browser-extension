@@ -1,3 +1,5 @@
+import { publishActiveTab } from "./tabTracking";
+
 const BACKEND_URL = process.env.BACKEND_URL;
 const WS_URL = BACKEND_URL ? BACKEND_URL.replace(/^http/, 'ws') : "";
 let ws: WebSocket | null = null;
@@ -48,6 +50,10 @@ export async function initializeWebSocket() {
             if(data.type === 'auth' && data.success === 'false') {
                 console.warn('[WebSocket] Auth failed, closing connection...');
                 ws?.close();
+            }
+
+            if(data.type === 'auth' && data.success) {
+                publishActiveTab();
             }
 
             if (data.type === 'friend_tab_update') {
