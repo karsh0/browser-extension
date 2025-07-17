@@ -13,7 +13,7 @@ interface UserProfileProps {
 const UserProfile: React.FC<UserProfileProps> = ({
   username,
   friendStatus,
-  userId,
+  userId: propUserId,
   onBack,
   onStatusChange,
 }) => {
@@ -21,17 +21,46 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [statusObj, setStatusObj] = useState(friendStatus);
+  const [userId, setUserId] = useState(propUserId);
 
   useEffect(() => {
     if (!user) return;
     setLoading(true);
     fetchUserProfile(username, user.token)
-      .then(res => setProfile(res.data))
+      .then(res => {
+        setProfile(res.data);
+        if (!propUserId && res.data?.id) {
+          setUserId(res.data.id);
+        }
+      })
       .finally(() => setLoading(false));
-  }, [username, user]);
+  }, [username, user, propUserId]);
 
   useEffect(() => {
-    setStatusObj(friendStatus);
+    if (!user || !userId || friendStatus) return;
+    
+    const fetchStatus = async () => {
+      try {
+        const statusRes = await getFriendshipStatus(userId, user.token);
+        if (statusRes.success) {
+          const newStatus = { 
+            status: statusRes.status, 
+            requestId: statusRes.requestId 
+          };
+          setStatusObj(newStatus);
+        }
+      } catch (error) {
+        console.error("Error fetching friendship status:", error);
+      }
+    };
+    
+    fetchStatus();
+  }, [user, userId, friendStatus]);
+
+  useEffect(() => {
+    if (friendStatus) {
+      setStatusObj(friendStatus);
+    }
   }, [friendStatus]);
 
   const handleAdd = async () => {

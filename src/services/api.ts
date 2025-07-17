@@ -170,3 +170,26 @@ export async function fetchHourlyPresence(token: string, days = 7) {
   });
   return res.json();
 }
+
+export async function fetchLeaderboard(token: string, page = 1, limit = 10, month?: string) {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    ...(month && { month })
+  });
+  
+  const res = await fetch(`${BACKEND_URL}/api/leaderboard/top?${params}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return res.json();
+}
+
+export async function fetchUserRank(token: string, month?: string) {
+  const params = new URLSearchParams();
+  if (month) params.append('month', month);
+  
+  const res = await fetch(`${BACKEND_URL}/api/leaderboard/rank?${params}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return res.json();
+}

@@ -6,12 +6,14 @@ import { DashboardHeader } from '../components/dashboard';
 import FriendsTabs from '../components/dashboard/FriendsTabs';
 import AnalyticsPanel from '../components/analytics/AnalyticsPanel';
 import SettingsPanel from '../components/settings/SettingsPanel';
+import LeaderboardPanel from '../components/leaderboard/LeaderboardPanel';
 import { flushAnalytics } from '../../services/api';
 
 const HomePage: React.FC = () => {
   const { user, loading, logout } = useAuth();
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -25,6 +27,12 @@ const HomePage: React.FC = () => {
       chrome.runtime.sendMessage({ type: "PUBLISH_ACTIVE_TAB" }, () => resolve());
     });
     window.location.reload();
+  };
+
+  const resetViews = () => {
+    setShowAnalytics(false);
+    setShowSettings(false);
+    setShowLeaderboard(false);
   };
 
   if (loading) {
@@ -48,29 +56,41 @@ const HomePage: React.FC = () => {
             username={user.username}
             displayName={
               showSettings
-                ? "Privacy\nSettings"
+                ? "Privacy Settings"
                 : showAnalytics
                 ? "Analytics"
+                : showLeaderboard
+                ? "Leaderboard"
                 : user.displayName
             }
             onRefresh={handleRefresh}
             onLogout={handleLogout}
-            onAnalytics={() => setShowAnalytics(true)}
-            onSettings={() => setShowSettings(true)}
-            showBack={showAnalytics || showSettings}
-            onBack={() => {
-              setShowAnalytics(false);
-              setShowSettings(false);
+            onAnalytics={() => {
+              resetViews();
+              setShowAnalytics(true);
             }}
+            onSettings={() => {
+              resetViews();
+              setShowSettings(true);
+            }}
+            onLeaderboard={() => {
+              resetViews();
+              setShowLeaderboard(true);
+            }}
+            showBack={showAnalytics || showSettings || showLeaderboard}
+            onBack={resetViews}
             isAnalytics={showAnalytics}
+            isLeaderboard={showLeaderboard}
           />
         </div>
         {/* Main content scrolls inside the popup */}
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           {showSettings ? (
-            <SettingsPanel onBack={() => setShowSettings(false)} />
+            <SettingsPanel onBack={resetViews} />
           ) : showAnalytics ? (
             <AnalyticsPanel />
+          ) : showLeaderboard ? (
+            <LeaderboardPanel onBack={resetViews} />
           ) : (
             <FriendsTabs />
           )}

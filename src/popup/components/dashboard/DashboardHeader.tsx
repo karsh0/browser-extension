@@ -1,5 +1,7 @@
 import React from 'react';
-import { FiUser, FiLogOut, FiBarChart2, FiArrowLeft, FiSettings } from 'react-icons/fi';
+import { FiUser, FiLogOut, FiBarChart2, FiArrowLeft, FiSettings} from 'react-icons/fi';
+import { GoTrophy } from "react-icons/go";
+
 
 interface DashboardHeaderProps {
   username: string;
@@ -8,9 +10,11 @@ interface DashboardHeaderProps {
   onLogout: () => void;
   onAnalytics: () => void;
   onSettings: () => void;
+  onLeaderboard: () => void;
   showBack?: boolean;
   onBack?: () => void;
   isAnalytics?: boolean;
+  isLeaderboard?: boolean;
 }
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({
@@ -20,9 +24,11 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onLogout,
   onAnalytics,
   onSettings,
+  onLeaderboard,
   showBack = false,
   onBack,
   isAnalytics = false,
+  isLeaderboard = false,
 }) => {
   return (
     <div className="flex items-center justify-between mb-8">
@@ -48,14 +54,23 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         </h1>
       </div>
       <div className="flex items-center space-x-2">
-        {!isAnalytics && (
-          <button
-            onClick={onAnalytics}
-            className="text-gray-500 hover:text-blue-600 p-1"
-            title="Analytics"
-          >
-            <FiBarChart2 size={22} />
-          </button>
+        {!isAnalytics && !isLeaderboard && (
+          <>
+            <button
+              onClick={onAnalytics}
+              className="text-gray-500 hover:text-blue-600 p-1"
+              title="Analytics"
+            >
+              <FiBarChart2 size={22} />
+            </button>
+            <button
+              onClick={onLeaderboard}
+              className="text-gray-500 hover:text-blue-600 p-1"
+              title="Leaderboard"
+            >
+              <GoTrophy size={22} />
+            </button>
+          </>
         )}
         <button
           onClick={onRefresh}
