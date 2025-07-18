@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { signup } from '../../services/api';
 import { useAuth } from '../context/AuthContext';
+import toast, { Toaster } from 'react-hot-toast';
+
 const BACKEND_URL = process.env.BACKEND_URL;
 
 const SignupPage: React.FC = () => {
@@ -14,7 +16,6 @@ const SignupPage: React.FC = () => {
   });
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [apiError, setApiError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -36,22 +37,36 @@ const SignupPage: React.FC = () => {
     
     if (!formData.username.trim()) {
       newErrors.username = 'Username is required';
-    } else if (formData.username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
+    } else if (formData.username.length < 4) {
+      newErrors.username = 'Username must be at least 4 characters';
+    } else if (!/^[a-zA-Z][a-zA-Z0-9_]{3,19}$/.test(formData.username)) {
+      newErrors.username = 'Username must start with a letter and contain only letters, numbers, and underscores';
+    } else if (/__/.test(formData.username)) {
+      newErrors.username = 'Username cannot contain consecutive underscores';
+    } else if (/^_|_$/.test(formData.username)) {
+      newErrors.username = 'Username cannot start or end with an underscore';
+    }
+    
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
     }
     
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
     }
     
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
     
-    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+    if (Object.keys(newErrors).length > 0) {
+      Object.values(newErrors).forEach(error => {
+        toast.error(error);
+      });
     }
     
     setErrors(newErrors);
@@ -64,29 +79,27 @@ const SignupPage: React.FC = () => {
     if (!validate()) return;
     
     setIsLoading(true);
-    setApiError('');
     
     try {
       const response = await signup({
         username: formData.username,
         password: formData.password,
-        email: formData.email || undefined,
+        email: formData.email,
         displayName: formData.displayName || undefined
       });
       
       if (!response.success) {
-        setApiError(response.error || 'Failed to create account');
+        toast.error(response.error || 'Failed to create account');
         return;
       }
       
-      // After successful signup, we need to log the user in
       const loginResponse = await fetch(`${BACKEND_URL}/api/users/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username: formData.username,
+          identifier: formData.username,
           password: formData.password
         }),
       });
@@ -94,18 +107,18 @@ const SignupPage: React.FC = () => {
       const loginData = await loginResponse.json();
       
       if (loginData.success) {
+        toast.success('Account created successfully!');
         login(loginData.data);
         window.location.href = '#/';
       } else {
-        // Signup was successful but login failed
-        setApiError('Account created! Please log in manually.');
+        toast.success('Account created! Please log in manually.');
         setTimeout(() => {
           window.location.href = '#/login';
         }, 2000);
       }
     } catch (error) {
       console.error('Signup error:', error);
-      setApiError('An unexpected error occurred. Please try again.');
+      toast.error('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -113,6 +126,32 @@ const SignupPage: React.FC = () => {
 
   return (
     <div className="min-h-[600px] w-[400px] bg-white p-6">
+      {/* Toast container */}
+      <Toaster 
+        position="top-center"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+          success: {
+            duration: 3000,
+            iconTheme: {
+              primary: '#4ade80',
+              secondary: 'white',
+            },
+          },
+          error: {
+            duration: 4000,
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: 'white',
+            },
+          },
+        }}
+      />
+      
       <div className="flex items-center mb-8">
         <a href="#/" className="text-blue-600 hover:text-blue-800 mr-4">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,12 +160,6 @@ const SignupPage: React.FC = () => {
         </a>
         <h1 className="text-2xl font-bold text-gray-800">Create Account</h1>
       </div>
-      
-      {apiError && (
-        <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-md text-sm">
-          {apiError}
-        </div>
-      )}
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -142,9 +175,21 @@ const SignupPage: React.FC = () => {
             className={`w-full px-3 py-2 border ${errors.username ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
             placeholder="Choose a username"
           />
-          {errors.username && (
-            <p className="mt-1 text-sm text-red-600">{errors.username}</p>
-          )}
+        </div>
+        
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            Email*
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            className={`w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            placeholder="Enter your email"
+          />
         </div>
         
         <div>
@@ -158,11 +203,8 @@ const SignupPage: React.FC = () => {
             value={formData.password}
             onChange={handleChange}
             className={`w-full px-3 py-2 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
-            placeholder="Create a password"
+            placeholder="Create a password (min 8 characters)"
           />
-          {errors.password && (
-            <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-          )}
         </div>
         
         <div>
@@ -178,27 +220,6 @@ const SignupPage: React.FC = () => {
             className={`w-full px-3 py-2 border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
             placeholder="Confirm your password"
           />
-          {errors.confirmPassword && (
-            <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
-          )}
-        </div>
-        
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-            Email (optional)
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className={`w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
-            placeholder="Enter your email"
-          />
-          {errors.email && (
-            <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-          )}
         </div>
         
         <div>

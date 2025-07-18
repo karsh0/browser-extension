@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { login } from '../../services/api';
 import { useAuth } from '../context/AuthContext';
+import toast, { Toaster } from 'react-hot-toast';
 
 const LoginPage: React.FC = () => {
   const { login: authLogin } = useAuth();
   const [formData, setFormData] = useState({
-    username: '',
+    identifier: '',
     password: '',
   });
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [apiError, setApiError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -19,7 +19,6 @@ const LoginPage: React.FC = () => {
       [name]: value
     }));
     
-    // Clear error when user types
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -31,12 +30,18 @@ const LoginPage: React.FC = () => {
   const validate = () => {
     const newErrors: {[key: string]: string} = {};
     
-    if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
+    if (!formData.identifier.trim()) {
+      newErrors.identifier = 'Username or email is required';
     }
     
     if (!formData.password) {
       newErrors.password = 'Password is required';
+    }
+    
+    if (Object.keys(newErrors).length > 0) {
+      Object.values(newErrors).forEach(error => {
+        toast.error(error);
+      });
     }
     
     setErrors(newErrors);
@@ -49,27 +54,26 @@ const LoginPage: React.FC = () => {
     if (!validate()) return;
     
     setIsLoading(true);
-    setApiError('');
     
     try {
       const response = await login({
-        username: formData.username,
+        identifier: formData.identifier,
         password: formData.password,
       });
       
       if (!response.success) {
-        setApiError(response.error || 'Invalid username or password');
+        toast.error(response.error || 'Invalid credentials');
         return;
       }
       
-      // Store user data in auth context
+      toast.success('Login successful!');
       authLogin(response.data);
       
       // Redirect to home page
       window.location.href = '#/';
     } catch (error) {
       console.error('Login error:', error);
-      setApiError('An unexpected error occurred. Please try again.');
+      toast.error('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -77,6 +81,31 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="min-h-[600px] w-[400px] bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      <Toaster 
+        position="top-center"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+          success: {
+            duration: 3000,
+            iconTheme: {
+              primary: '#4ade80',
+              secondary: 'white',
+            },
+          },
+          error: {
+            duration: 4000,
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: 'white',
+            },
+          },
+        }}
+      />
+      
       <div className="flex items-center mb-8">
         <a href="#/" className="text-blue-600 hover:text-blue-800 mr-4">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,30 +115,21 @@ const LoginPage: React.FC = () => {
         <h1 className="text-2xl font-bold text-gray-800">Log In</h1>
       </div>
       
-      {apiError && (
-        <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-md text-sm">
-          {apiError}
-        </div>
-      )}
-      
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-              Username
+            <label htmlFor="identifier" className="block text-sm font-medium text-gray-700 mb-1">
+              Username or Email
             </label>
             <input
               type="text"
-              id="username"
-              name="username"
-              value={formData.username}
+              id="identifier"
+              name="identifier"
+              value={formData.identifier}
               onChange={handleChange}
-              className={`w-full px-3 py-2 border ${errors.username ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
-              placeholder="Enter your username"
+              className={`w-full px-3 py-2 border ${errors.identifier ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              placeholder="Enter your username or email"
             />
-            {errors.username && (
-              <p className="mt-1 text-sm text-red-600">{errors.username}</p>
-            )}
           </div>
           
           <div>
@@ -125,9 +145,6 @@ const LoginPage: React.FC = () => {
               className={`w-full px-3 py-2 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
               placeholder="Enter your password"
             />
-            {errors.password && (
-              <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-            )}
           </div>
           
           <div className="flex items-center justify-between">
@@ -144,7 +161,7 @@ const LoginPage: React.FC = () => {
             </div>
             
             <div className="text-sm">
-              <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+              <a href="#/" className="font-medium text-blue-600 hover:text-blue-500">
                 Forgot password?
               </a>
             </div>

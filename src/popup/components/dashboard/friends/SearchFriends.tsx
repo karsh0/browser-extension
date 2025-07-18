@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { searchUsers, getFriendshipStatus, sendFriendRequest, cancelFriendRequest } from '../../../../services/api';
-import UserProfile from './UserProfile';
+import UserProfile from '../../profile/OtherUserProfile';
 
 interface UserResult {
   id: string;

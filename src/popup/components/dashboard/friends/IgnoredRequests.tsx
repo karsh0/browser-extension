@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { fetchIgnoredRequests, acceptFriendRequest } from '../../../../services/api';
-import UserProfile from './UserProfile';
+import UserProfile from '../../profile/OtherUserProfile';
 
 interface IgnoredRequest {
   requestId: string;

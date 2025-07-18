@@ -5,7 +5,7 @@ import { fetchLeaderboard, fetchUserRank } from '../../../services/api';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { FaTrophy } from 'react-icons/fa';
 import { AiOutlineLoading } from 'react-icons/ai';
-import UserProfile from '../dashboard/friends/UserProfile';
+import UserProfile from '../profile/OtherUserProfile';
 
 interface LeaderboardEntry {
   rank: number;

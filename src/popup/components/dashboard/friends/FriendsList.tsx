@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useFriends } from '../../../context/FriendsContext';
-import UserProfile from './UserProfile';
+import UserProfile from '../../profile/OtherUserProfile';
 
 function getDomain(url: string) {
   try {

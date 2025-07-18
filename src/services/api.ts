@@ -8,7 +8,7 @@ export interface SignupData {
 }
 
 export interface LoginData {
-  username: string;
+  identifier: string;
   password: string;
 }
 
@@ -193,3 +193,10 @@ export async function fetchUserRank(token: string, month?: string) {
   });
   return res.json();
 }
+
+export const fetchUserPosition = async (token: string, userId: string) => {
+  const res = await fetch(`${BACKEND_URL}/api/leaderboard/user-position?userId=${userId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return await res.json();
+};

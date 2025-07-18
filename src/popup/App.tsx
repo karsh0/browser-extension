@@ -1,5 +1,6 @@
 import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { AuthProvider } from './context/AuthContext';
+import { Toaster } from 'react-hot-toast';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const SignupPage = lazy(() => import('./pages/SignupPage'));
@@ -12,39 +13,35 @@ const Loading = () => (
 );
 
 export default function App() {
-  const [currentRoute, setCurrentRoute] = useState<string>(window.location.hash || '#/');
+  const [path, setPath] = useState(window.location.hash.slice(1) || '/');
 
   useEffect(() => {
-    // Simple hash-based routing
     const handleHashChange = () => {
-      setCurrentRoute(window.location.hash || '#/');
+      setPath(window.location.hash.slice(1) || '/');
     };
 
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  // Render the appropriate component based on the current route
-  const renderRoute = () => {
-    return (
-      <Suspense fallback={<Loading />}>
-        {(() => {
-          switch (currentRoute) {
-            case '#/signup':
-              return <SignupPage />;
-            case '#/login':
-              return <LoginPage />;
-            default:
-              return <HomePage />;
-          }
-        })()}
-      </Suspense>
-    );
-  };
-
   return (
     <AuthProvider>
-      {renderRoute()}
+      <Toaster 
+        position="top-center"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          }
+        }}
+      />
+
+      <Suspense fallback={<Loading />}>
+        {path === '/' && <HomePage />}
+        {path === '/signup' && <SignupPage />}
+        {path === '/login' && <LoginPage />}
+      </Suspense>
     </AuthProvider>
   );
 }
