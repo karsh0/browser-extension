@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../../../context/AuthContext';
-import { fetchPendingSentRequests, cancelFriendRequest } from '../../../../services/api';
-import UserProfile from '../../profile/OtherUserProfile';
+import { useAuth } from '../../context/AuthContext';
+import { fetchPendingSentRequests, cancelFriendRequest } from '../../../services/api';
+import UserProfile from '../profile/OtherUserProfile';
 
 interface Request {
   requestId: string;

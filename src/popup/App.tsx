@@ -1,47 +1,40 @@
-import React, { useEffect, useState, lazy, Suspense } from 'react';
-import { AuthProvider } from './context/AuthContext';
+import React from 'react';
 import { Toaster } from 'react-hot-toast';
+import { AuthProvider } from './context/AuthContext';
+import AppRouter from './router/AppRouter';
 
-const HomePage = lazy(() => import('./pages/HomePage'));
-const SignupPage = lazy(() => import('./pages/SignupPage'));
-const LoginPage = lazy(() => import('./pages/LoginPage'));
-
-const Loading = () => (
-  <div className="flex items-center justify-center h-screen bg-gray-50">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-  </div>
-);
-
-export default function App() {
-  const [path, setPath] = useState(window.location.hash.slice(1) || '/');
-
-  useEffect(() => {
-    const handleHashChange = () => {
-      setPath(window.location.hash.slice(1) || '/');
-    };
-
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
-
+const App: React.FC = () => {
   return (
     <AuthProvider>
       <Toaster 
         position="top-center"
         toastOptions={{
-          duration: 4000,
+          duration: 3000,
           style: {
             background: '#363636',
             color: '#fff',
-          }
+            fontSize: '14px',
+          },
+          success: {
+            duration: 2000,
+            iconTheme: {
+              primary: '#4ade80',
+              secondary: 'white',
+            },
+          },
+          error: {
+            duration: 4000,
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: 'white',
+            },
+          },
         }}
       />
-
-      <Suspense fallback={<Loading />}>
-        {path === '/' && <HomePage />}
-        {path === '/signup' && <SignupPage />}
-        {path === '/login' && <LoginPage />}
-      </Suspense>
+      
+      <AppRouter />
     </AuthProvider>
   );
-}
+};
+
+export default App;
