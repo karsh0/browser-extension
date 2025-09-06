@@ -60,6 +60,7 @@ interface MessageContextType {
   conversations: Conversation[];
   messages: Record<string, Message[]>;
   loading: boolean;
+  unreadCount: number;
   pendingCount: number;
   loadConversations: () => Promise<void>;
   loadMessages: (conversationId: string, markAsSeen: boolean) => Promise<void>;
@@ -87,6 +88,7 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [messages, setMessages] = useState<Record<string, Message[]>>({});
   const [loading, setLoading] = useState(true);
 
+  const unreadCount = conversations.filter(c => c.status === 'ACCEPTED').reduce((sum, c) => sum + c.unreadCount, 0);
   const pendingCount = conversations.filter(c => c.status === 'PENDING').length;
 
   const loadConversations = useCallback(async () => {
@@ -403,6 +405,7 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         loading,
         loadConversations,
         loadMessages,
+        unreadCount,
         pendingCount,
         sendMessage,
         markAsSeen,

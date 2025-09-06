@@ -2,6 +2,7 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FiHome, FiUsers, FiBarChart, FiMoreHorizontal, FiMail } from 'react-icons/fi';
 import { useFriends } from '../../context/FriendsContext';
+import { useMessage } from '../../context/MessageContext';
 
 interface NavItem {
   key: string;
@@ -15,6 +16,7 @@ const BottomNavigation: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { friends } = useFriends();
+  const { unreadCount, pendingCount } = useMessage();
   
   const navItems: NavItem[] = [
     {
@@ -39,8 +41,7 @@ const BottomNavigation: React.FC = () => {
       icon: <FiMail size={20} />,
       path: '/inbox',
       getBadge: () => {
-        // TODO: Get actual unread messages count from API
-        return 0;
+        return unreadCount + pendingCount;
       }
     },
     {
