@@ -1,5 +1,5 @@
 import { publishActiveTab } from "./tabTracking";
-import { handleNewMessageNotification } from "./notifications";
+import { handleNewMessageNotification, handleFriendOnlineNotification, handleFriendRequestNotification, handleFriendRequestAcceptedNotification } from "./notifications";
 
 const BACKEND_URL = process.env.BACKEND_URL;
 const WS_URL = BACKEND_URL ? BACKEND_URL.replace(/^http/, 'ws') : "";
@@ -95,6 +95,66 @@ export async function initializeWebSocket() {
                     content: data.data.content,
                     conversationId: data.data.conversationId,
                     messageId: data.data.id
+                });
+            }
+
+            if (data.type === 'FRIEND_ONLINE') {
+                
+                try {
+                    await chrome.runtime.sendMessage({
+                        type: 'FRIEND_ONLINE',
+                        payload: data.data
+                    });
+                } catch (error) {
+                    console.warn('[WebSocket-extension] Popup not available for FRIEND_ONLINE:', error);
+                }
+                
+                await handleFriendOnlineNotification({
+                    userId: data.data.userId,
+                    username: data.data.username,
+                    displayName: data.data.displayName,
+                    timestamp: data.data.timestamp
+                });
+            }
+
+            if (data.type === 'FRIEND_REQUEST_RECEIVED') {
+                console.log('[WebSocket-extension] Received friend request:', data);
+                
+                try {
+                    await chrome.runtime.sendMessage({
+                        type: 'FRIEND_REQUEST_RECEIVED',
+                        payload: data.data
+                    });
+                } catch (error) {
+                    console.warn('[WebSocket-extension] Popup not available for FRIEND_REQUEST_RECEIVED:', error);
+                }
+
+                await handleFriendRequestNotification({
+                    senderId: data.data.senderId,
+                    senderName: data.data.senderName,
+                    senderUsername: data.data.senderUsername,
+                    requestId: data.data.requestId,
+                    timestamp: data.data.timestamp
+                });
+            }
+
+            if (data.type === 'FRIEND_REQUEST_ACCEPTED') {
+                console.log('[WebSocket-extension] Friend request accepted:', data);
+                
+                try {
+                    await chrome.runtime.sendMessage({
+                        type: 'FRIEND_REQUEST_ACCEPTED',
+                        payload: data.data
+                    });
+                } catch (error) {
+                    console.warn('[WebSocket-extension] Popup not available for FRIEND_REQUEST_ACCEPTED:', error);
+                }
+
+                await handleFriendRequestAcceptedNotification({
+                    accepterId: data.data.accepterId,
+                    accepterName: data.data.accepterName,
+                    accepterUsername: data.data.accepterUsername,
+                    timestamp: data.data.timestamp
                 });
             }
         } catch (error) {
