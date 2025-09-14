@@ -1,0 +1,50 @@
+name: Build Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    name: Test Build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: TypeScript type check
+      run: npm run type-check
+
+    - name: Build project
+      run: npm run build
+      env:
+        BACKEND_URL: https://api.browseping.com
+        NODE_ENV: production
+
+    - name: Verify build output
+      run: |
+        echo "🔍 Checking if build files were created..."
+        if [ -d "dist" ]; then
+          echo "✅ dist directory exists"
+          echo "📁 Build contents:"
+          ls -la dist/
+          echo "📊 Build size: "
+          du -sh dist/
+          echo "✅ Build completed successfully!"
+          echo "🔗 Built with BACKEND_URL: https://api.browseping.com"
+        else
+          echo "❌ dist directory not found - build failed"
+          exit 1
+        fi
