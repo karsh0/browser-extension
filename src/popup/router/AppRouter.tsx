@@ -68,6 +68,31 @@ const AppRouter: React.FC = () => {
 
 const AuthenticatedApp: React.FC = () => {
   const { user } = useAuth();
+  const [notificationCount, setNotificationCount] = React.useState(0);
+  
+  // Fetch notification count on mount and periodically
+  React.useEffect(() => {
+    const fetchNotificationCount = async () => {
+      try {
+        if (user?.token) {
+          const { getUnreadNotificationCount } = await import('../../services/api');
+          const response = await getUnreadNotificationCount(user.token);
+          if (response.success) {
+            setNotificationCount(response.data.unreadCount);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching notification count:', error);
+      }
+    };
+
+    fetchNotificationCount();
+    
+    // Refresh count every 30 seconds
+    const interval = setInterval(fetchNotificationCount, 30000);
+    
+    return () => clearInterval(interval);
+  }, [user?.token]);
   
   const handleRefresh = async () => {
     try {
@@ -92,7 +117,11 @@ const AuthenticatedApp: React.FC = () => {
   };
 
   return (
-    <AppLayout onRefresh={handleRefresh} onNotifications={handleNotifications}>
+    <AppLayout 
+      onRefresh={handleRefresh} 
+      onNotifications={handleNotifications}
+      notificationCount={notificationCount}
+    >
       <Routes>
         {/* Core Pages */}
         <Route path="/" element={<HomePage />} />

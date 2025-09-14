@@ -7,20 +7,26 @@ interface AppLayoutProps {
   showTopActions?: boolean;
   onRefresh?: () => void;
   onNotifications?: () => void;
+  notificationCount?: number;
 }
 
 const AppLayout: React.FC<AppLayoutProps> = ({ 
   children, 
   showTopActions = true,
   onRefresh,
-  onNotifications 
+  onNotifications,
+  notificationCount = 0
 }) => {
   return (
     <div className="min-h-[600px] w-[400px] bg-white flex flex-col h-[600px]">
       {/* Top Action Bar */}
       {showTopActions && (
         <div className="sticky top-0 z-20 bg-white border-b border-gray-100 px-4 py-2">
-          <TopActionBar onRefresh={onRefresh} onNotifications={onNotifications} />
+          <TopActionBar 
+            onRefresh={onRefresh} 
+            onNotifications={onNotifications}
+            notificationCount={notificationCount}
+          />
         </div>
       )}
       

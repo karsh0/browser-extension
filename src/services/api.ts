@@ -309,3 +309,47 @@ export const markConversationAsSeen = async (conversationId: string, token: stri
     };
   }
 };
+
+// Notification APIs
+export const fetchNotifications = async (token: string, page = 1, limit = 20, unreadOnly = false) => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    unreadOnly: unreadOnly.toString()
+  });
+
+  const response = await fetch(`${BACKEND_URL}/api/notifications?${params}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return await response.json();
+};
+
+export const getUnreadNotificationCount = async (token: string) => {
+  const response = await fetch(`${BACKEND_URL}/api/notifications/unread-count`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return await response.json();
+};
+
+export const markNotificationAsRead = async (notificationId: string, token: string) => {
+  const response = await fetch(`${BACKEND_URL}/api/notifications/${notificationId}/read`, {
+    method: 'PATCH',
+    headers: { 
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  return await response.json();
+};
+
+export const markAllNotificationsAsRead = async (token: string) => {
+  const response = await fetch(`${BACKEND_URL}/api/notifications/read-all`, {
+    method: 'PATCH',
+    headers: { 
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ markAll: true })
+  });
+  return await response.json();
+};
