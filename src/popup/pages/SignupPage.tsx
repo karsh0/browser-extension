@@ -57,12 +57,12 @@ const SignupPage: React.FC<SignupPageProps> = ({ verifiedEmail }) => {
       newErrors.username = 'Username is required';
     } else if (formData.username.length < 4) {
       newErrors.username = 'Username must be at least 4 characters';
-    } else if (!/^[a-zA-Z][a-zA-Z0-9_]{3,19}$/.test(formData.username)) {
-      newErrors.username = 'Username must start with a letter and contain only letters, numbers, and underscores';
-    } else if (/__/.test(formData.username)) {
-      newErrors.username = 'Username cannot contain consecutive underscores';
-    } else if (/^_|_$/.test(formData.username)) {
-      newErrors.username = 'Username cannot start or end with an underscore';
+    } else if (!/^[a-zA-Z][a-zA-Z0-9_-]{3,19}$/.test(formData.username)) {
+      newErrors.username = 'Username must start with a letter and contain only letters, numbers, underscores, and hyphens';
+    } else if (/[_-]{2,}/.test(formData.username)) {
+      newErrors.username = 'Username cannot contain consecutive underscores or hyphens';
+    } else if (/^[_-]|[_-]$/.test(formData.username)) {
+      newErrors.username = 'Username cannot start or end with an underscore or hyphen';
     }
     
     if (!formData.email) {

@@ -30,8 +30,12 @@ const AboutPage: React.FC = () => {
       <div className="flex-1 overflow-y-auto p-4">
         {/* App Info */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-4 mx-auto shadow-lg">
-            <span className="text-white text-3xl font-bold">BP</span>
+          <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-4 mx-auto shadow-lg overflow-hidden">
+            <img 
+              src="icons/icon128.png" 
+              alt="BrowsePing Logo" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">BrowsePing</h2>
           <p className="text-gray-600 mb-1">Socialize your presence, enhance your browsing</p>

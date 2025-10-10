@@ -6,8 +6,12 @@ const WelcomeScreen: React.FC = () => {
     <div className="min-h-[600px] w-[400px] bg-gradient-to-br from-blue-50 to-indigo-100 p-6 flex flex-col">
       <div className="flex-1 flex flex-col items-center justify-center space-y-8">
         <div className="text-center">
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-4 mx-auto shadow-lg">
-            <span className="text-white text-2xl font-bold">BP</span>
+          <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-4 mx-auto shadow-lg overflow-hidden">
+            <img 
+              src="icons/icon128.png" 
+              alt="BrowsePing Logo" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <h1 className="text-4xl font-bold text-blue-600 mb-2">BrowsePing</h1>
           <p className="text-lg text-gray-600">Connect with friends across the web</p>
