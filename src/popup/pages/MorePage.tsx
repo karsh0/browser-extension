@@ -17,7 +17,6 @@ const MorePage: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    toast.success('Logged out successfully');
     window.location.href = '#/';
   };
 

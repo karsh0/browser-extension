@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { User, updateUserInLocalStorage, getUserFromLocalStorage, clearUserFromLocalStorage } from '../utils/localStorage';
+import { logout as logoutAPI } from '../../services/api';
+import toast from 'react-hot-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -30,7 +32,17 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
       }
     };
 
+    const handleSessionExpired = (event: CustomEvent) => {
+      handleLogoutLocal();
+    };
+
     checkUserSession();
+    
+    window.addEventListener('sessionExpired', handleSessionExpired as EventListener);
+    
+    return () => {
+      window.removeEventListener('sessionExpired', handleSessionExpired as EventListener);
+    };
   }, []);
 
   const login = (userData: User) => {
@@ -52,10 +64,38 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     }
   };
 
-  const logout = async () => {
+  const handleLogoutLocal = async () => {
     setUser(null);
     await clearUserFromLocalStorage();
     chrome.runtime.sendMessage({ type: 'LOGOUT' });
+  };
+
+  const logout = async () => {
+    if (user?.token) {
+      try {
+        const response = await logoutAPI(user.token);
+        
+        if (response.success) {
+          toast.success('Logged out successfully', {
+            duration: 3000,
+            position: 'top-center',
+          });
+        } else {
+          toast.error('Logout completed (server error)', {
+            duration: 3000,
+            position: 'top-center',
+          });
+        }
+      } catch (error) {
+        console.error('Logout API error:', error);
+        toast.error('Logout completed (server unavailable)', {
+          duration: 3000,
+          position: 'top-center',
+        });
+      }
+    }
+    
+    await handleLogoutLocal();
   };
 
   return (

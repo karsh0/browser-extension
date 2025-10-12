@@ -1,3 +1,5 @@
+import toast from 'react-hot-toast';
+
 const BACKEND_URL = process.env.BACKEND_URL;
 
 export interface SignupData {
@@ -11,6 +13,42 @@ export interface LoginData {
   identifier: string;
   password: string;
 }
+
+// Session handling utility
+const handleApiResponse = async (response: Response) => {
+  const data = await response.json();
+ 
+  if (data.sessionExpired || (response.status === 401 && data.message?.includes('Session'))) {
+    toast.error('Session expired. Please login again.', {
+      duration: 5000,
+      position: 'top-center',
+    });
+    
+    window.dispatchEvent(new CustomEvent('sessionExpired', { 
+      detail: { message: data.error || data.message || 'Session expired. Please login again.' }
+    }));
+  }
+  
+  return data;
+};
+
+export const fetchWithAuth = async (url: string, options: RequestInit = {}, token: string) => {
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        ...options.headers,
+      },
+    });
+    
+    return await handleApiResponse(response);
+  } catch (error) {
+    console.error('API request error:', error);
+    throw error;
+  }
+};
 
 export const signup = async (data: SignupData) => {
   try {
@@ -46,36 +84,40 @@ export const login = async (data: LoginData) => {
   }
 };
 
+export const logout = async (token: string) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/users/logout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+    });
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Logout error:', error);
+    throw error;
+  }
+};
+
 export const fetchFriends = async (token: string) => {
-  const response = await fetch(`${process.env.BACKEND_URL}/api/friends`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-  return await response.json();
+  return await fetchWithAuth(`${BACKEND_URL}/api/friends`, {}, token);
 };
 
 export const searchUsers = async (query: string, token: string) => {
-  const res = await fetch(`${BACKEND_URL}/api/users/search?username=${encodeURIComponent(query)}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return await res.json();
+  return await fetchWithAuth(`${BACKEND_URL}/api/users/search?username=${encodeURIComponent(query)}`, {}, token);
 };
 
 export const getFriendshipStatus = async (userId: string, token: string) => {
-  const res = await fetch(`${BACKEND_URL}/api/friends/status?userId=${userId}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return await res.json();
+  return await fetchWithAuth(`${BACKEND_URL}/api/friends/status?userId=${userId}`, {}, token);
 };
 
 export const sendFriendRequest = async (receiverId: string, token: string) => {
-  const res = await fetch(`${BACKEND_URL}/api/friends/request`, {
+  return await fetchWithAuth(`${BACKEND_URL}/api/friends/request`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ receiverId })
-  });
-  return await res.json();
+  }, token);
 };
 
 export const cancelFriendRequest = async (requestId: string, token: string) => {
@@ -142,10 +184,7 @@ export const fetchFriendsWithStatus = async (token: string) => {
 };
 
 export const fetchUserProfile = async (username: string, token: string) => {
-  const res = await fetch(`${BACKEND_URL}/api/profile/${encodeURIComponent(username)}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return await res.json();
+  return await fetchWithAuth(`${BACKEND_URL}/api/profile/${encodeURIComponent(username)}`, {}, token);
 };
 
 export const fetchWeeklyTabUsage = async (token: string) => {
@@ -214,10 +253,7 @@ export const fetchUserPosition = async (token: string, userId: string) => {
 
 // Conversation APIs
 export const getUserConversations = async (token: string) => {
-  const response = await fetch(`${BACKEND_URL}/api/conversation`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return await response.json();
+  return await fetchWithAuth(`${BACKEND_URL}/api/conversation`, {}, token);
 };
 
 export const getConversationMessages = async (conversationId: string, token: string, limit = 50, cursor?: string, markAsSeen = false) => {
@@ -329,10 +365,7 @@ export const fetchNotifications = async (token: string, page = 1, limit = 20, un
     unreadOnly: unreadOnly.toString()
   });
 
-  const response = await fetch(`${BACKEND_URL}/api/notifications?${params}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return await response.json();
+  return await fetchWithAuth(`${BACKEND_URL}/api/notifications?${params}`, {}, token);
 };
 
 export const getUnreadNotificationCount = async (token: string) => {
